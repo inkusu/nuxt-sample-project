@@ -1,0 +1,115 @@
+version: 2
+
+defaults: &defaults
+  working_directory: ~/project
+  docker:
+    - image: node:11-alpine
+
+jobs:
+
+  setup:
+    <<: *defaults
+    steps:
+      - checkout
+
+      # Restore cache
+      - restore_cache:
+          key: package-{{ checksum "nuxt-sample-project/package-lock.json" }}
+
+      - run:
+          name: Install Dependencies
+          command: NODE_ENV=dev npm install
+          working_directory: nuxt-sample-project
+
+      # Keep cache
+      - save_cache:
+          key: package-{{ checksum "nuxt-sample-project/package-lock.json" }}
+          paths:
+            - "nuxt-sample-project/node_modules"
+
+      # Persist files
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
+
+  check:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: unit test
+          command: npm run test
+          working_directory: nuxt-sample-project
+
+  build:
+    docker:
+      - image: circleci/python:3.6.1
+    environment:
+      AWS_DEFAULT_OUTPUT: json
+    steps:
+      - setup_remote_docker
+        docker_layer_caching: true
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: docker build
+          command: docker build --no-cache -t wakachan/nuxt-sample-project:release -f Dockerfile .
+      - run:
+          name: docker login
+          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run:
+          name: docker push
+          command: docker push wakachan/nuxt-sample-project:release
+
+  st-deploy:
+    machine: true
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "69:d9:3b:23:6d:65:f3:6d:8e:a7:f9:c0:2e:e1:4f:c4"
+      - run:
+          name: staging delpoy
+          command: >
+            ssh ubuntu@st-project-tool.vogaro.jp "cd nuxt-sample-project/ && sh deploy.sh"
+            
+workflows:
+  version: 2
+  test-build-deploy:
+    jobs:
+      - setup
+
+      - check:
+          requires:
+            - setup
+          filters:
+            branches:
+              only:
+                 - sprint-1-2018-10-42018-10-12
+
+      - build-hold:
+          type: nuxt-sample-projectroval
+          requires:
+            - check
+          filters:
+            branches:
+              only:
+                 - sprint-1-2018-10-42018-10-12
+
+      - build:
+          context: AWS_ECR
+          requires:
+            - build-hold
+          filters:
+            branches:
+              only:
+                 - sprint-1-2018-10-42018-10-12
+
+      - st-deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                 - sprint-1-2018-10-42018-10-12
