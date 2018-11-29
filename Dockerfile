@@ -10,6 +10,8 @@ RUN apk --update add tzdata && \
 # ポート解放
 EXPOSE 3000
 
+ENV HOST 0.0.0.0
+
 COPY nuxt-sample-project /home/node/app
 
 WORKDIR /home/node/app

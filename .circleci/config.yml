@@ -58,7 +58,7 @@ jobs:
           command: docker build --no-cache -t wakachan/nuxt-sample-project:release -f Dockerfile .
       - run:
           name: docker login
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+          command: docker login --username=$DOCKER_USER --password=$DOCKER_PASS
       - run:
           name: docker push
           command: docker push wakachan/nuxt-sample-project:release
@@ -70,9 +70,9 @@ jobs:
           fingerprints:
             - "69:d9:3b:23:6d:65:f3:6d:8e:a7:f9:c0:2e:e1:4f:c4"
       - run:
-          name: staging delpoy
+          name: delpoy
           command: >
-            ssh ubuntu@st-project-tool.vogaro.jp "cd nuxt-sample-project/ && sh deploy.sh"
+            ssh ubuntu@$STATIC_IP_ADDRESS "cd /app/ & docker service update --image wakachan/nuxt-sample-project:release sample_app"
             
 workflows:
   version: 2
@@ -83,33 +83,11 @@ workflows:
       - check:
           requires:
             - setup
-          filters:
-            branches:
-              only:
-                 - sprint-1-2018-10-42018-10-12
-
-      - build-hold:
-          type: nuxt-sample-projectroval
-          requires:
-            - check
-          filters:
-            branches:
-              only:
-                 - sprint-1-2018-10-42018-10-12
 
       - build:
-          context: AWS_ECR
           requires:
             - build-hold
-          filters:
-            branches:
-              only:
-                 - sprint-1-2018-10-42018-10-12
 
       - st-deploy:
           requires:
             - build
-          filters:
-            branches:
-              only:
-                 - sprint-1-2018-10-42018-10-12
