@@ -44,9 +44,8 @@ jobs:
           working_directory: nuxt-sample-project
 
   build:
-    <<: *defaults
+    machine: true
     steps:
-      - setup_remote_docker
       - attach_workspace:
           at: ~/project
       - run:
@@ -59,7 +58,7 @@ jobs:
           name: docker push
           command: docker push wakachan/nuxt-sample-project:release
 
-  st-deploy:
+  deploy:
     machine: true
     steps:
       - add_ssh_keys:
@@ -84,6 +83,6 @@ workflows:
           requires:
             - check
 
-      - st-deploy:
+      - deploy:
           requires:
             - build
