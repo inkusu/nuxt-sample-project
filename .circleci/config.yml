@@ -3,7 +3,7 @@ version: 2
 defaults: &defaults
   working_directory: ~/project
   docker:
-    - image: node:11-alpine
+    - image: banian/node-headless-chrome
 
 jobs:
 
@@ -11,10 +11,6 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-
-      - run:
-          name: install ca-certificates
-          command: apk update && apk add -y ca-certificates
 
       # Restore cache
       - restore_cache:
