@@ -44,13 +44,9 @@ jobs:
           working_directory: nuxt-sample-project
 
   build:
-    docker:
-      - image: circleci/python:3.6.1
-    environment:
-      AWS_DEFAULT_OUTPUT: json
+    <<: *defaults
     steps:
       - setup_remote_docker
-        docker_layer_caching: true
       - attach_workspace:
           at: ~/project
       - run:
@@ -86,7 +82,7 @@ workflows:
 
       - build:
           requires:
-            - build-hold
+            - check
 
       - st-deploy:
           requires:
