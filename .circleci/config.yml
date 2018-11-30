@@ -29,7 +29,7 @@ jobs:
       - save_cache:
           key: package-{{ checksum "nuxt-sample-project/package-lock.json" }}
           paths:
-            - "project/node_modules"
+            - "nuxt-sample-project/node_modules"
 
       # Persist files
       - persist_to_workspace:
