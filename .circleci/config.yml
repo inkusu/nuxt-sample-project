@@ -1,0 +1,88 @@
+version: 2
+
+defaults: &defaults
+  working_directory: ~/project
+  docker:
+    - image: banian/node-headless-chrome
+
+jobs:
+
+  setup:
+    <<: *defaults
+    steps:
+      - checkout
+
+      # Restore cache
+      - restore_cache:
+          key: package-{{ checksum "nuxt-sample-project/package-lock.json" }}
+
+      - run:
+          name: Install Dependencies
+          command: NODE_ENV=dev npm install
+          working_directory: nuxt-sample-project
+
+      # Keep cache
+      - save_cache:
+          key: package-{{ checksum "nuxt-sample-project/package-lock.json" }}
+          paths:
+            - "nuxt-sample-project/node_modules"
+
+      # Persist files
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
+
+  check:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: unit test
+          command: npm run test
+          working_directory: nuxt-sample-project
+
+  build:
+    machine: true
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: docker build
+          command: docker build --no-cache -t wakachan/nuxt-sample-project:release -f Dockerfile .
+      - run:
+          name: docker login
+          command: docker login --username=$DOCKER_USER --password=$DOCKER_PASS
+      - run:
+          name: docker push
+          command: docker push wakachan/nuxt-sample-project:release
+
+  deploy:
+    machine: true
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "7e:8b:cc:15:65:0e:a2:fa:5c:f3:18:42:34:19:51:df"
+      - run:
+          name: delpoy
+          command: >
+            ssh ubuntu@$STATIC_IP_ADDRESS "cd /app/ & docker service update --image wakachan/nuxt-sample-project:release sample_app"
+            
+workflows:
+  version: 2
+  test-build-deploy:
+    jobs:
+      - setup
+
+      - check:
+          requires:
+            - setup
+
+      - build:
+          requires:
+            - check
+
+      - deploy:
+          requires:
+            - build

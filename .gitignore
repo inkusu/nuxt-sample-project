@@ -1,0 +1,30 @@
+# dependencies
+node_modules
+
+# logs
+npm-debug.log
+
+# Nuxt build
+.nuxt
+
+# Nuxt generate
+dist
+
+# Intelij IDEA
+.idea/
+*.iml
+
+# vs code
+.vscode
+
+# Misc
+.DS_Store
+
+# env
+.env
+
+# pwa of nuxt
+sw.*
+
+# Coverage reports
+coverage
