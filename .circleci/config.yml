@@ -25,7 +25,7 @@ jobs:
       - save_cache:
           key: package-{{ checksum "nuxt-sample-project/package-lock.json" }}
           paths:
-            - "nuxt-sample-project/node_modules"
+            - "project/node_modules"
 
       # Persist files
       - persist_to_workspace:
@@ -64,7 +64,7 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "69:d9:3b:23:6d:65:f3:6d:8e:a7:f9:c0:2e:e1:4f:c4"
+            - "7e:8b:cc:15:65:0e:a2:fa:5c:f3:18:42:34:19:51:df"
       - run:
           name: delpoy
           command: >
