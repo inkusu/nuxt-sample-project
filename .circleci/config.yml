@@ -12,6 +12,10 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: install ca-certificates
+          command: sudo apt-get update && sudo apt-get install -y ca-certificates
+
       # Restore cache
       - restore_cache:
           key: package-{{ checksum "nuxt-sample-project/package-lock.json" }}
